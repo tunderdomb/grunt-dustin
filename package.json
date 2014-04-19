@@ -1,0 +1,32 @@
+{
+  "name": "grunt-dustin",
+  "version": "0.7.0",
+  "description": "Grunt task for LinkedIn's Dust fork",
+  "main": "dustin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tunderdomb/grunt-dustin.git"
+  },
+  "keywords": [
+    "template",
+    "dust"
+  ],
+  "author": "Nagy Zoltan <tunderdomb@gmail.com> (tunderdomb)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tunderdomb/grunt-dustin/issues"
+  },
+  "dependencies": {
+    "dustjs-linkedin": "2.3.4",
+    "async": "0.2.10",
+    "mkdirp": "0.3.5"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.4",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-concat": "~0.4.0"
+  }
+}
