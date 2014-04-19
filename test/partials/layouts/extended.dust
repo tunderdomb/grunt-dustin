@@ -1,0 +1,7 @@
+{>"layouts/base"/}
+{<main}
+  {>"nested/partial/extension"/}
+  {~n}
+  {! placeholder !}
+  {+content/}
+{/main}

@@ -1,0 +1,23 @@
+{
+  "ho": "ho",
+  "go": "go",
+  "emptylist": [],
+  "stringlist": [
+    "hey", "ho", "let's", "go"
+  ],
+  "mixedlist": [
+    1, 2, 3, 4,
+    "hey", "ho", "let's", "go",
+    {}, true, false, null
+  ],
+  "emptyobject": {},
+  "object": {
+    "string": "hey ho let's go",
+    "number": 0,
+    "true": true,
+    "false": false,
+    "null": null,
+    "list": [],
+    "object": {}
+  }
+}

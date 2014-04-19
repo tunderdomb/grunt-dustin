@@ -1,0 +1,12 @@
+Start{~n}
+{! placeholder with default content !}
+{+title}
+  Base Title
+{/title}
+{~n}
+{! placeholder with default content !}
+{+main}
+  Base Content
+{/main}
+{~n}
+End

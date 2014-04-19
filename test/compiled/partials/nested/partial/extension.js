@@ -1,0 +1,1 @@
+(function(){dust.register("nested/partial/extension",body_0);function body_0(chk,ctx){return chk.write("Extended Content");}return body_0;})();

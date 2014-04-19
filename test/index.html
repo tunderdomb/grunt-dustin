@@ -1,0 +1,44 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DustIn</title>
+</head>
+<body>
+<pre id="out"></pre>
+
+<script type="text/javascript" src="lib/dust-core.js"></script>
+<script type="text/javascript" src="compiled/templates.dust.js"></script>
+<script type="text/javascript">
+  dust.resolve = function( templateName ){
+    return "compiled/partials/"+templateName+".js"
+  }
+  dust.render("dust", {
+    global: {
+      "ho": "ho",
+      "go": "go",
+      "emptylist": [],
+      "stringlist": [
+        "hey", "ho", "let's", "go"
+      ],
+      "mixedlist": [
+        1, 2, 3, 4,
+        "hey", "ho", "let's", "go",
+        {}, true, false, null
+      ],
+      "emptyobject": {},
+      "object": {
+        "string": "hey ho let's go",
+        "number": 0,
+        "true": true,
+        "false": false,
+        "null": null,
+        "list": [],
+        "object": {}
+      }
+    }
+  }, function(err, out) {
+    document.getElementById("out").innerHTML = out
+  })
+</script>
+</body>
+</html>

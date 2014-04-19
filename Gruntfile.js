@@ -2,6 +2,7 @@ module.exports = function ( grunt ){
 
   grunt.initConfig({
     dustin: {
+      // set global values for path resolution
       options: {
         resolve: "test/partials/",
         partials: "**/*.dust",
@@ -9,15 +10,31 @@ module.exports = function ( grunt ){
       },
       copyClientLibs: {
         options: {
+          // if the client option is present, every other is ignored
+          // copy client libs to this dir
           client: "test/lib/",
+          // set path resolution to this path
+          // templates will attempt to load from this dir
+          // example: {>"nested/partial/go"/}
+          // will load from compiled/partials/nested/partial/go.js
+
+          // NOTE: for correct resolution, the compiled templates must use the same resolve roots,
+          // so take care setting the resolve and partials options accordingly
+          // In a nutshell, the resolve option just lets you define a resolution root
+          // so you can refer to templates with a relative path.
           resolve: "compiled/partials/"
         }
       },
       render: {
         options: {
+          // this target renders html files
           render: true,
+          // Dust removes white space by default. Don't do that.
           preserveWhiteSpace: true,
+          // create a global context from these json files
+          // file names will be global properties
           data: "test/data/*.json",
+          // execute these js files and let them register helpers
           helpers: "test/helpers/*.js"
         },
         expand: true,
@@ -27,8 +44,10 @@ module.exports = function ( grunt ){
       },
       compile: {
         options: {
-          preserveWhiteSpace: false,
-          compile: true
+          // this task compiles js files
+          compile: true,
+          // we don't care about white space in compiled templates
+          preserveWhiteSpace: false
         },
         expand: true,
         cwd: "test/",
@@ -40,6 +59,7 @@ module.exports = function ( grunt ){
         options: {
           preserveWhiteSpace: false,
           compile: true,
+          // this one concats compiled files into one
           concat: true
         },
         files: {

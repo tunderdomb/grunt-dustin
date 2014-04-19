@@ -16,100 +16,57 @@ and their fork seems to be even better and improved than the original
 
 ## Grunt task
 
-### options
-
-#### options.client
-
-Type: `String`
-
-Default: `""`
-
-A directory path where to copy the client side libs.
-
-#### options.render
-
-Type: `Boolean`
-
-Default: `true`
-
-Render files with the given context.
-
-#### options.compile
-
-Type: `Boolean`
-
-Default: `false`
-
-Precompile files into javascript.
-
-#### options.data
-
-Type: `String`
-
-Default: `""`
-
-A globbing pattern that collects `*.json` files.
-
-These will be merged into a global context and will be passed to each template.
-The file names will be used for root field names.
-
-#### options.resolve
-
-Type: `String`
-
-Default: `""`
-
-The path part that will be ignored when looking up partials.
-
-If you match partials `"nested/folder/partials/*.mustache"`
-you would have to refer partials in your templates with their full path: `{{>nested/folder/partials/apartial}}`
-With this option, you can set a path part that will be excluded from partial resolution.
-E.g. `partialsRoot: "nested/folder/partials/"`. Now you can just refer to templates as `{{>apartial}}`
-
-#### options.partials
-
-Type: `String`
-
-Default: `""`
-
-A globbing pattern that collects template files.
-The pattern is relative to the `resolve` options.
-
-Include/import/partial paths will be looked among these files.
-
-#### options.cache
-
-Type: `Boolean`
-
-Default: `false`
-
-Embrace loads template files once and returns the same content every time it is requested if this option is true.
-False by default, because the main reason of this module is to use it with a watch task.
-
-#### options.setup
-
-Type: `Function`
-
-Default: `null`
-
-A function receiving the template adapter and the embrace object `setup(Adapter adapter, Object embrace)`
-
-### Compile
-
 ```js
 
   grunt.initConfig({
-    embrace: {
+    dustin: {
+      // set global values for path resolution
       options: {
-        client: "test/embrace/",
-        data: "test/data/*.json",
         resolve: "test/partials/",
         partials: "**/*.dust",
-        cache: false,
         setup: function( adapter, dust ){}
       },
-      compileDust: {
-        options: {compile: true},
+      copyClientLibs: {
+        options: {
+          // if the client option is present, every other is ignored
+          // copy client libs to this dir
+          client: "test/lib/",
+          // set path resolution to this path
+          // templates will attempt to load from this dir
+          // example: {>"nested/partial/go"/}
+          // will load from compiled/partials/nested/partial/go.js
+
+          // NOTE: for correct resolution, the compiled templates must use the same resolve roots,
+          // so take care setting the resolve and partials options accordingly
+          // In a nutshell, the resolve option just lets you define a resolution root
+          // so you can refer to templates with a relative path.
+          resolve: "compiled/partials/"
+        }
+      },
+      render: {
+        options: {
+          // this target renders html files
+          render: true,
+          // Dust removes white space by default. Don't do that.
+          preserveWhiteSpace: true,
+          // create a global context from these json files
+          // file names will be global properties
+          data: "test/data/*.json",
+          // execute these js files and let them register helpers
+          helpers: "test/helpers/*.js"
+        },
+        expand: true,
+        cwd: "test/templates",
+        src: ["*.dust"],
+        dest: "test/rendered/"
+      },
+      compile: {
+        options: {
+          // this task compiles js files
+          compile: true,
+          // we don't care about white space in compiled templates
+          preserveWhiteSpace: false
+        },
         expand: true,
         cwd: "test/",
         src: ["**/*.dust"],
@@ -118,7 +75,9 @@ A function receiving the template adapter and the embrace object `setup(Adapter 
       },
       compileAndConcat: {
         options: {
+          preserveWhiteSpace: false,
           compile: true,
+          // this one concats compiled files into one
           concat: true
         },
         files: {
@@ -126,35 +85,40 @@ A function receiving the template adapter and the embrace object `setup(Adapter 
           "test/compiled/templates.dust.js": "test/templates/**/*.dust"
         }
       }
-    }
-  })
-
-```
-
-### Render
-
-```js
-
-  grunt.initConfig({
-    embrace: {
-      options: {
-        client: "test/embrace/",
-        data: "test/data/*.json",
-        helpers: "test/helpers/dust/*.js",
-        resolve: "test/partials/",
-        partials: "**/*.dust",
-        setup: function( adapter, dust ){}
+    },
+    clean: {
+      test: {
+        src:[
+          "test/rendered/**/*",
+          "test/compiled/**/*"
+        ]
       }
-      render: {
-        options: {render: true},
+    },
+    dir: {
+      "src": {
+        src: "test/templates/*.*"
+      },
+      "src-dest": {
+        src: "test/templates/*.*",
+        dest: "test/rendered"
+      },
+      "src-expand": {
         expand: true,
-        cwd: "test/templates",
-        src: ["*.dust"],
-        dest: "test/rendered/"
+        src: "test/templates/*.*"
+      },
+      "src-dest-expand": {
+        expand: true,
+        src: "test/templates/*.*",
+        dest: "test/rendered"
+      },
+      "cwd-src-dest-expand": {
+        expand: true,
+        cwd: "test/templates/",
+        src: "*.*",
+        dest: "test/rendered"
       }
     }
   })
-
 ```
 
 ## Licence
