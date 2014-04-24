@@ -228,9 +228,9 @@ Adapter.prototype.data = function ( sources ){
  *  Render a template
  * ==================== */
 Adapter.prototype.render = function ( src, content, done ){
+  var adapter = this
   try {
     var name = path.basename(src, path.extname(src))
-    var adapter = this
     adapter.currentDustTemplate = src
     dust.loadSource(dust.compile(content, name))
     dust.render(name, adapter.context, function ( err, out ){
@@ -245,6 +245,10 @@ Adapter.prototype.render = function ( src, content, done ){
   }
   catch ( e ) {
     done(e)
+    if ( !adapter.cache ) {
+      dust.cache = {}
+    }
+    delete adapter.currentDustTemplate
   }
 }
 
