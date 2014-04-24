@@ -8,3 +8,11 @@ Child Title
 Extended Content
 Child Content
 End
+hey ho let's go
+ho
+<a href="">hello</a>
+
+{! raw !}
+Preserve all new lines,
+{a}
+whitespace, and braces

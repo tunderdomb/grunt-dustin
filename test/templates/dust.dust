@@ -28,3 +28,22 @@
 {<content}
   Child Content
 {/content}
+
+{! macros !}
+{~n}
+{@macro hey="hey"}
+  {hey} ho let's go
+{/macro}
+{~n}
+{@macro partial="go" go="ho"/}
+{~n}
+{@macro partial="a" title="hello"/}
+
+{! raw !}
+{~n}
+{`
+{! raw !}
+Preserve all new lines,
+{a}
+whitespace, and braces
+`}

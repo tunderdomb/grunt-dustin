@@ -55,6 +55,9 @@ module.exports = function ( grunt ){
     }
 
     // Register helpers and copy client engines
+    grunt.file.expand(path.join(__dirname, "..", "helpers/*.js")).forEach(function( builtInHelper ){
+      require(builtInHelper)(adapter, dustin, dustin.dust)
+    })
     if( options.helpers ){
       adapter.registerHelpers(grunt.file.expand(options.helpers))
     }

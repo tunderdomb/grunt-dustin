@@ -98,6 +98,12 @@ module.exports = function ( grunt ){
         cwd: "test/templates/",
         src: "*.*",
         dest: "test/rendered"
+      },
+      relative: {
+        expand: true,
+        cwd: "test/partials/",
+        src: "{layouts,nested}/**/*.dust",
+        dest: "test/rendered"
       }
     }
   })

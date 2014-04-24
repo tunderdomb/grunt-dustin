@@ -9,9 +9,6 @@
 <script type="text/javascript" src="lib/dust-core.js"></script>
 <script type="text/javascript" src="compiled/templates.dust.js"></script>
 <script type="text/javascript">
-  dust.resolve = function( templateName ){
-    return "compiled/partials/"+templateName+".js"
-  }
   dust.render("dust", {
     global: {
       "ho": "ho",

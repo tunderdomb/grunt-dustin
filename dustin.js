@@ -151,7 +151,8 @@ function Adapter( options ){
   // Override onLoad to specify a fallback loading mechanism
   // (e.g., to load templates from the filesystem or a database).
   dust.onLoad = function ( name, cb ){
-    cb(null, dustin.loadPartial(adapter.partials, name, adapter.currentDustTemplate, adapter.cache))
+//    cb(null, dustin.loadPartial(adapter.partials, name, adapter.currentDustTemplate, adapter.cache))
+    cb(null, adapter.loadPartial(name))
   }
 
   options.setup && options.setup(this, dust)
@@ -171,6 +172,9 @@ Adapter.prototype.addPartials = function ( locations ){
   }, this)
 }
 
+Adapter.prototype.loadPartial = function( name ){
+  return dustin.loadPartial(this.partials, name, this.currentDustTemplate, this.cache)
+}
 Adapter.prototype.getPartialByName = function ( name ){
   var partial = null
   this.partials.some(function ( p ){
@@ -197,6 +201,7 @@ Adapter.prototype.getPartialBySrc = function ( src ){
 Adapter.prototype.registerHelpers = function ( sources ){
   var adapter = this
   sources.forEach(function ( src ){
+    src = path.join(process.cwd(), src)
     try{
       require(src)(adapter, dustin, dust)
     }
