@@ -10,6 +10,12 @@
     "hey", "ho", "let's", "go",
     {}, true, false, null
   ],
+  "objectlist": [
+    {"name": "hey"},
+    {"name": "ho"},
+    {"name": "let's"},
+    {"name": "go"}
+  ],
   "emptyobject": {},
   "object": {
     "string": "hey ho let's go",

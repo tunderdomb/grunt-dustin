@@ -12,14 +12,29 @@
   {:else}
     I hope nobody's taping this!
   {/emptylist}
+  {~n}
 
   {! list !}
   {#stringlist}
-    {.|s}{~n}
+    {.|s}{@sep}, {/sep}
   {/stringlist}
 
+  {~n}
+  {#objectlist}
+    {@math key="{$idx}" method="mod" operand="2"}
+      {@eq value=0}
+        {~n}
+        {name|s}{~s}
+      {:else}
+        {name|s}
+      {/eq}
+    {/math}
+  {/objectlist}
+
+  {~n}
 {/global}
 
+{~n}
 {! inheritance !}
 {>"layouts/extended"/}
 {<title}

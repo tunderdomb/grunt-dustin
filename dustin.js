@@ -12,6 +12,9 @@ function dustin( setup ){
 module.exports = dustin
 
 var dust = dustin.dust = require("dustjs-linkedin")
+var helpers = require("dustjs-helpers")
+dust.helpers = helpers.helpers
+
 
 var origFormatter = dust.optimizers.format
 
