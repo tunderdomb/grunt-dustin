@@ -5,12 +5,13 @@
     script.async = false
     document.head.appendChild(script)
     var ok
+      , error = null
     script.onload = function( e ){
-      ok || done()
+      ok || done(error)
       ok = true
     }
     script.onerror = function( e ){
-      ok || done()
+      ok || done(error = e)
       ok = true
     }
   }
