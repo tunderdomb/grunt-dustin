@@ -15,7 +15,6 @@ var dust = dustin.dust = require("dustjs-linkedin")
 var helpers = require("dustjs-helpers")
 dust.helpers = helpers.helpers
 
-
 var origFormatter = dust.optimizers.format
 
 dustin.preserveWhiteSpace = function ( preserve ){
@@ -52,6 +51,7 @@ dustin.copyClient = function ( dest, resolvePath ){
     var clientPath = path.join(__dirname, "node_modules/dustjs-linkedin/dist", clientScript)
     var script = dustin.read(clientPath)
     script += ";\n"+onLoad
+    mkdirp.sync(path.dirname(destPath))
     fs.writeFileSync(destPath, script, "utf8")
   })
 }
