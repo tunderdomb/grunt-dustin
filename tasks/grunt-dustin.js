@@ -8,7 +8,6 @@
 
 var async = require("async")
 var path = require("path")
-var fs = require("fs")
 var dustin = require("../dustin")
 
 module.exports = function ( grunt ){
@@ -107,7 +106,7 @@ module.exports = function ( grunt ){
         })
       }
       else if ( options.render ) {
-        adapter.render(src, content, null, function ( err, rendered ){
+        adapter.render(src, content, function ( err, rendered ){
           if ( !err ) {
             grunt.file.write(file.dest, rendered)
             console.log("Rendered '%s'", file.dest)
