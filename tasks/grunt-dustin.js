@@ -107,7 +107,7 @@ module.exports = function ( grunt ){
         })
       }
       else if ( options.render ) {
-        adapter.render(src, content, function ( err, rendered ){
+        adapter.render(src, content, null, function ( err, rendered ){
           if ( !err ) {
             grunt.file.write(file.dest, rendered)
             console.log("Rendered '%s'", file.dest)

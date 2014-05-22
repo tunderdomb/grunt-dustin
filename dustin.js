@@ -15,7 +15,6 @@ var dust = dustin.dust = require("dustjs-linkedin")
 var helpers = require("dustjs-helpers")
 dust.helpers = helpers.helpers
 
-
 var origFormatter = dust.optimizers.format
 
 dustin.preserveWhiteSpace = function ( preserve ){
@@ -46,12 +45,13 @@ dustin.copyClient = function ( dest, resolvePath ){
       "dust-full.js",
       "dust-full.min.js"
     ]
-  onLoad = onLoad.replace(/"resolvePath"/, '"'+resolvePath+'"')
+  onLoad = onLoad.replace(/"resolvePath"/, '"' + resolvePath + '"')
   scripts.forEach(function doCopy( clientScript ){
     var destPath = path.join(process.cwd(), dest, clientScript)
     var clientPath = path.join(__dirname, "node_modules/dustjs-linkedin/dist", clientScript)
     var script = dustin.read(clientPath)
-    script += ";\n"+onLoad
+    script += ";\n" + onLoad
+    mkdirp.sync(path.dirname(destPath))
     fs.writeFileSync(destPath, script, "utf8")
   })
 }
@@ -143,10 +143,14 @@ function Adapter( options ){
   var adapter = this
 
   this.resolve = options.resolve || ""
+  this.resolveSrc = options.resolveSrc || process.cwd()
   this.cache = !!options.cache
+
+  dustin.preserveWhiteSpace(!!options.whiteSpace)
 
   this.context = {}
   this.partials = []
+  // keep track of the current root template for error reporting
   this.currentDustTemplate = null
 
   // By default Dust returns a "template not found" error
@@ -175,7 +179,7 @@ Adapter.prototype.addPartials = function ( locations ){
   }, this)
 }
 
-Adapter.prototype.loadPartial = function( name ){
+Adapter.prototype.loadPartial = function ( name ){
   return dustin.loadPartial(this.partials, name, this.currentDustTemplate, this.cache)
 }
 Adapter.prototype.getPartialByName = function ( name ){
@@ -205,10 +209,10 @@ Adapter.prototype.registerHelpers = function ( sources ){
   var adapter = this
   sources.forEach(function ( src ){
     src = path.join(process.cwd(), src)
-    try{
+    try {
       require(src)(adapter, dustin, dust)
     }
-    catch( e ){}
+    catch ( e ) {}
   })
 }
 
@@ -230,13 +234,18 @@ Adapter.prototype.data = function ( sources ){
 /** ====================
  *  Render a template
  * ==================== */
-Adapter.prototype.render = function ( src, content, done ){
+Adapter.prototype.render = function ( src, content, context, done ){
   var adapter = this
+
+  context = context
+    ? dustin.merge(adapter.context, context)
+    : adapter.context
+
   try {
     var name = path.basename(src, path.extname(src))
     adapter.currentDustTemplate = src
     dust.loadSource(dust.compile(content, name))
-    dust.render(name, adapter.context, function ( err, out ){
+    dust.render(name, context, function ( err, out ){
       done(err, out)
       // clear dust cache each time a root template is rendered
       // because there's no other way r/n to disable caching
@@ -276,4 +285,38 @@ Adapter.prototype.compile = function ( src, content, done ){
   }
 }
 
+Adapter.prototype.renderView = function ( src, res, next, content, context ){
+  this.render(src, content, context, function ( err, rendered ){
+    if ( err ) {
+      next(err)
+    }
+    else {
+      res.send(rendered)
+    }
+  })
+}
 
+Adapter.prototype.addView = function ( app, url, src, context ){
+  var adapter = this
+  src = path.join(this.resolveSrc, src + ".dust")
+  app.get(url, function ( req, res, next ){
+    fs.readFile(src, "utf8", function ( err, content ){
+      if ( err ) {
+        next(err)
+        return
+      }
+      if ( typeof context == "function" ) {
+        context(function ( err, context ){
+          if ( err ) {
+            next(err)
+            return
+          }
+          adapter.renderView(src, res, next, content, context)
+        })
+      }
+      else {
+        adapter.renderView(src, res, next, content, context)
+      }
+    })
+  })
+}
