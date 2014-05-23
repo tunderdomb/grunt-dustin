@@ -1,12 +1,16 @@
 var path = require("path")
 var fs = require("fs")
 var mkdirp = require("mkdirp")
+var glob = require("glob")
+
+var adapter
 
 /**
  * @return {Adapter}
  * */
 function dustin( setup ){
-  return new Adapter(setup)
+  adapter = adapter || new Adapter(setup)
+  return adapter
 }
 
 module.exports = dustin
@@ -14,15 +18,24 @@ module.exports = dustin
 var dust = dustin.dust = require("dustjs-linkedin")
 var helpers = require("dustjs-helpers")
 dust.helpers = helpers.helpers
+var nativeHelpers = glob.sync(path.join(__dirname, "helpers/*.js")).map(function ( builtInHelper ){
+  return require(builtInHelper)
+})
+
+function registerNativeHelpers( adapter ){
+  nativeHelpers.forEach(function ( nativeHelper ){
+    nativeHelper(adapter, dustin, dustin.dust, dustin.dust.helpers)
+  })
+}
 
 var origFormatter = dust.optimizers.format
 
 dustin.preserveWhiteSpace = function ( preserve ){
   if ( preserve ) {
-    dust.optimizers.format = origFormatter
+    dust.optimizers.format = function ( ctx, node ){ return node }
   }
   else {
-    dust.optimizers.format = function ( ctx, node ){ return node }
+    dust.optimizers.format = origFormatter
   }
 }
 
@@ -147,6 +160,7 @@ function Adapter( options ){
   this.cache = !!options.cache
 
   dustin.preserveWhiteSpace(!!options.preserveWhiteSpace)
+  registerNativeHelpers(adapter)
 
   this.context = {}
   this.partials = []
@@ -161,7 +175,6 @@ function Adapter( options ){
 //    cb(null, dustin.loadPartial(adapter.partials, name, adapter.currentDustTemplate, adapter.cache))
     cb(null, adapter.loadPartial(name))
   }
-
   options.setup && options.setup(this, dust)
 }
 
