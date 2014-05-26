@@ -101,34 +101,6 @@ dustin.merge = function ( obj, extension ){
   return ret
 }
 
-dustin.loadPartial = function ( partials, partialName, src, cache ){
-  var content = null
-  partials.some(function ( partial ){
-    if ( partial.name == partialName ) {
-      if ( !cache || partial.content === null ) {
-        content = dustin.read(partial.src)
-        if ( cache && content != null ) {
-          // make an actual object out of the template string
-          // so it can be passed around by reference
-          // because string primitives would be copied every time
-          // let's hope it doesn't throw off engines
-          // if they only do `typeof x != "string" -> Error..` at some point
-          partial.content = new String(content)
-        }
-      }
-      else {
-        content = partial.content
-      }
-      return true
-    }
-    return false
-  })
-  if ( content == null ) {
-    throw new Error("Partial '" + partialName + "' not found in '" + src + "'")
-  }
-  return content || ""
-}
-
 /**
  * resolve a partial name to a proper path part
  * @example
@@ -163,7 +135,7 @@ function Adapter( options ){
   registerNativeHelpers(adapter)
 
   this.context = {}
-  this.partials = []
+  this.partials = {}
   // keep track of the current root template for error reporting
   this.currentDustTemplate = null
 
@@ -172,50 +144,32 @@ function Adapter( options ){
   // Override onLoad to specify a fallback loading mechanism
   // (e.g., to load templates from the filesystem or a database).
   dust.onLoad = function ( name, cb ){
-//    cb(null, dustin.loadPartial(adapter.partials, name, adapter.currentDustTemplate, adapter.cache))
     cb(null, adapter.loadPartial(name))
   }
   options.setup && options.setup(this, dust)
 }
 
-/**
- * @param locations{String[]} a list of partial file paths
- * @param [root]{String} partials root folder
- * */
-Adapter.prototype.addPartials = function ( locations ){
-  locations.forEach(function ( src ){
-    this.partials.push({
-      src: src,
-      name: dustin.resolvePartialName(src, this.resolve),
-      content: null
-    })
-  }, this)
-}
-
 Adapter.prototype.loadPartial = function ( name ){
-  return dustin.loadPartial(this.partials, name, this.currentDustTemplate, this.cache)
-}
-Adapter.prototype.getPartialByName = function ( name ){
-  var partial = null
-  this.partials.some(function ( p ){
-    if ( p.name === name ) {
-      partial = p
-      return true
+  var partial = this.partials[name]
+  var content
+  if ( !this.cache || !partial ) {
+    var src = path.join(process.cwd(), this.resolve, name+".dust")
+    content = dustin.read(src)
+    if ( this.cache && partial ) {
+      this.partials[name] = {
+        src: src,
+        name: name,
+        content: content
+      }
     }
-    return false
-  })
-  return partial
-}
-Adapter.prototype.getPartialBySrc = function ( src ){
-  var partial = null
-  this.partials.some(function ( p ){
-    if ( p.src === src ) {
-      partial = p
-      return true
-    }
-    return false
-  })
-  return partial
+  }
+  else {
+    content = partial && partial.content
+  }
+  if( !content ) {
+    throw new Error("Partial '" + name + "' not found in '" + this.currentDustTemplate + "'")
+  }
+  return content
 }
 
 Adapter.prototype.registerHelpers = function ( sources ){
@@ -282,14 +236,7 @@ Adapter.prototype.render = function ( src, content, context, done ){
  * ==================== */
 Adapter.prototype.compile = function ( src, content, done ){
   try {
-    var partial = this.getPartialBySrc(src)
-      , name
-    if ( partial ) {
-      name = partial.name
-    }
-    else {
-      name = dustin.nameOf(src)
-    }
+    var name = dustin.resolvePartialName(src, this.resolve)
     var compiled = dust.compile(content, name)
     done(null, compiled)
   }

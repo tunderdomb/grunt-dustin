@@ -5,7 +5,6 @@ module.exports = function ( grunt ){
       // set global values for path resolution
       options: {
         resolve: "test/partials/",
-        partials: "**/*.dust",
         setup: function( adapter, dust ){}
       },
       copyClientLibs: {

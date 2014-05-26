@@ -23,28 +23,6 @@ var adapter = dustin({
 })
 
 ```
-
-### addPartials( locations )
-
-Register partial location. Fore each path in the `location` array,
-dustin adds a partial object to its registry:
-
-```js
-this.partials.push({
-  src: src,
-  name: dustin.resolvePartialName(src, this.resolve),
-  content: null
-})
-```
-
-### getPartialByName( name )
-
-Return a partial object by its name.
-
-### getPartialBySrc( src )
-
-Return a partial object by its source.
-
 ### registerHelpers( sources )
 
 Register helpers. For each path in the `sources` array, dustin does this:

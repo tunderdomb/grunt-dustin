@@ -40,14 +40,6 @@ module.exports = function ( grunt ){
 
     var adapter = dustin(options)
 
-    // register partials
-    if( options.partials ){
-      var partials = options.resolve
-        ? path.join(options.resolve , options.partials)
-        : options.partials
-      adapter.addPartials(grunt.file.expand(partials))
-    }
-
     // register data
     if( options.data ){
       adapter.data(grunt.file.expand(options.data))
