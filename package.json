@@ -1,6 +1,6 @@
 {
   "name": "grunt-dustin",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Grunt task for LinkedIn's Dust fork",
   "main": "dustin.js",
   "scripts": {
