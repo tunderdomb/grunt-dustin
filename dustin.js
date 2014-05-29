@@ -22,6 +22,12 @@ var nativeHelpers = glob.sync(path.join(__dirname, "helpers/*.js")).map(function
   return require(builtInHelper)
 })
 
+var clientLib = [
+  path.join(__dirname, "client/onLoad.js"),
+  path.join(__dirname, "client/renderElement.js"),
+  path.join(__dirname, "client/helpers/macro.js")
+]
+
 function registerNativeHelpers( adapter ){
   nativeHelpers.forEach(function ( nativeHelper ){
     nativeHelper(adapter, dustin, dustin.dust, dustin.dust.helpers)
@@ -51,19 +57,23 @@ function copy( src, dest ){
  * and concat the onLoad function to each them.
  * */
 dustin.copyClient = function ( dest, resolvePath ){
-  var onLoad = dustin.read(path.join(__dirname, "client/onLoad.js"))
-    , scripts = [
+
+  var clientLibs = glob.sync(path.join(__dirname, "client/**/*.js")).map(function( src ){
+    return dustin.read(src)
+  }).join(";\n")
+
+  var scripts = [
       "dust-core.js",
       "dust-core.min.js",
       "dust-full.js",
       "dust-full.min.js"
     ]
-  onLoad = onLoad.replace(/"resolvePath"/, '"' + resolvePath + '"')
+  clientLibs = clientLibs.replace(/"resolvePath"/, '"' + resolvePath + '"')
   scripts.forEach(function doCopy( clientScript ){
     var destPath = path.join(process.cwd(), dest, clientScript)
     var clientPath = path.join(__dirname, "node_modules/dustjs-linkedin/dist", clientScript)
     var script = dustin.read(clientPath)
-    script += ";\n" + onLoad
+    script += ";\n" + clientLibs
     mkdirp.sync(path.dirname(destPath))
     fs.writeFileSync(destPath, script, "utf8")
   })
@@ -174,12 +184,17 @@ Adapter.prototype.loadPartial = function ( name ){
 
 Adapter.prototype.registerHelpers = function ( sources ){
   var adapter = this
+  if ( typeof sources == "string" ) {
+    sources = glob.sync(sources)
+  }
   sources.forEach(function ( src ){
     src = path.join(process.cwd(), src)
     try {
       require(src)(adapter, dustin, dust)
     }
-    catch ( e ) {}
+    catch ( e ) {
+      console.error("Couldn't load helper '"+src+"'", e)
+    }
   })
 }
 
