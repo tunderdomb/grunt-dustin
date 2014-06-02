@@ -3,6 +3,11 @@ var fs = require("fs")
 var mkdirp = require("mkdirp")
 var glob = require("glob")
 
+// dustjs helpers
+var dust = dustin.dust = require("dustjs-linkedin")
+var helpers = require("dustjs-helpers")
+dust.helpers = helpers.helpers
+
 // singleton
 var adapter
 
@@ -16,10 +21,34 @@ function dustin( setup ){
 
 module.exports = dustin
 
-// dustjs helpers
-var dust = dustin.dust = require("dustjs-linkedin")
-var helpers = require("dustjs-helpers")
-dust.helpers = helpers.helpers
+function read( src ){
+  try {
+    return fs.readFileSync(src, "utf8")
+  }
+  catch ( e ) {
+    return null
+  }
+}
+function extend( obj, extension ){
+  for ( var prop in extension ) {
+    obj[prop] = extension[prop]
+  }
+  return obj
+}
+function merge( obj, extension ){
+  var ret = {}
+    , prop
+  for ( prop in obj ) {
+    ret[prop] = obj[prop]
+  }
+  for ( prop in extension ) {
+    ret[prop] = extension[prop]
+  }
+  return ret
+}
+dustin.read = read
+dustin.extend = extend
+dustin.merge = merge
 
 // dist client libs
 var dustLibs = [
@@ -34,7 +63,7 @@ var clientLibs = (function ( dustHelpersString ){
   for ( var helper in dust.helpers ) {
     dustHelpersString += "dust.helpers." + helper + " = " + dust.helpers[helper].toString() + ";\n"
   }
-  return dustHelpersString + glob.sync(path.join(__dirname, "client/**/*.js")).map(dustin.read).join(";\n")
+  return dustHelpersString + glob.sync(path.join(__dirname, "client/**/*.js")).map(read).join(";\n")
 }(""))
 
 // node helpers
@@ -72,43 +101,15 @@ dustin.copyClient = function ( dest, resolvePath ){
   dustLibs.forEach(function doCopy( dustScript ){
     var destPath = path.join(process.cwd(), dest, dustScript)
     var clientPath = path.join(__dirname, "node_modules/dustjs-linkedin/dist", dustScript)
-    var script = dustin.read(clientPath)
+    var script = read(clientPath)
     script += ";\n" + clientScript
     mkdirp.sync(path.dirname(destPath))
     fs.writeFileSync(destPath, script, "utf8")
   })
 }
 
-dustin.read = function ( src ){
-  try {
-    return fs.readFileSync(src, "utf8")
-  }
-  catch ( e ) {
-    return null
-  }
-}
-
-dustin.nameOf = function ( src ){
+function nameOf( src ){
   return path.basename(src, path.extname(src))
-}
-
-dustin.extend = function ( obj, extension ){
-  for ( var prop in extension ) {
-    obj[prop] = extension[prop]
-  }
-  return obj
-}
-
-dustin.merge = function ( obj, extension ){
-  var ret = {}
-    , prop
-  for ( prop in obj ) {
-    ret[prop] = obj[prop]
-  }
-  for ( prop in extension ) {
-    ret[prop] = extension[prop]
-  }
-  return ret
 }
 
 /**
@@ -122,7 +123,7 @@ dustin.merge = function ( obj, extension ){
  * @param src{String} the full partial source from the partials list (Adapter.partials)
  * @param root{String} the partials' root folder
  * */
-dustin.resolvePartialName = function ( src, root ){
+function resolvePartialName( src, root ){
   if ( !root ) return src
   root = (root).replace(/\/+$/, "")
   src = src.replace(root, "").replace(/^\/|\.\w*?$/g, "")
@@ -173,7 +174,7 @@ Adapter.prototype.loadPartial = function ( name ){
   var content
   if ( !this.cache || !partial ) {
     var src = path.join(process.cwd(), this.resolve, name + ".dust")
-    content = dustin.read(src)
+    content = read(src)
     if ( this.cache && partial ) {
       this.partials[name] = {
         src: src,
@@ -220,7 +221,7 @@ Adapter.prototype.data = function ( sources ){
   }
   sources.forEach(function ( file ){
     try {
-      context[dustin.nameOf(file)] = JSON.parse(dustin.read(file))
+      context[nameOf(file)] = JSON.parse(read(file))
     }
     catch ( e ) {
       console.warn("Invalid data path: '" + file + "'")
@@ -266,7 +267,7 @@ Adapter.prototype.render = function ( src, content, context, done ){
  * ==================== */
 Adapter.prototype.compile = function ( src, content, done ){
   try {
-    var name = dustin.resolvePartialName(src, this.resolve)
+    var name = resolvePartialName(src, this.resolve)
     var compiled = dust.compile(content, name)
     done(null, compiled)
   }
