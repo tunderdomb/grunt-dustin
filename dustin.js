@@ -3,6 +3,7 @@ var fs = require("fs")
 var mkdirp = require("mkdirp")
 var glob = require("glob")
 
+// singleton
 var adapter
 
 /**
@@ -15,27 +16,43 @@ function dustin( setup ){
 
 module.exports = dustin
 
+// dustjs helpers
 var dust = dustin.dust = require("dustjs-linkedin")
 var helpers = require("dustjs-helpers")
 dust.helpers = helpers.helpers
+
+// dist client libs
+var dustLibs = [
+  "dust-core.js",
+  "dust-core.min.js",
+  "dust-full.js",
+  "dust-full.min.js"
+]
+
+// custom client libs
+var clientLibs = (function ( dustHelpersString ){
+  for ( var helper in helpers ) {
+    dustHelpersString += "dust.helpers." + helper + " = " + helpers[helper].toString() + ";\n"
+  }
+  return dustHelpersString + glob.sync(path.join(__dirname, "client/**/*.js")).map(dustin.read).join(";\n")
+}(""))
+
+// node helpers
 var nativeHelpers = glob.sync(path.join(__dirname, "helpers/*.js")).map(function ( builtInHelper ){
   return require(builtInHelper)
 })
 
-var clientLib = [
-  path.join(__dirname, "client/onLoad.js"),
-  path.join(__dirname, "client/renderElement.js"),
-  path.join(__dirname, "client/helpers/macro.js")
-]
-
+// called when singleton first created to register custom node helpers
 function registerNativeHelpers( adapter ){
   nativeHelpers.forEach(function ( nativeHelper ){
-    nativeHelper(adapter, dustin, dustin.dust, dustin.dust.helpers)
+    nativeHelper(adapter, dustin, dust, dust.helpers)
   })
 }
 
+// save original formatter's reference
 var origFormatter = dust.optimizers.format
 
+// switch between minified and unformatted rendering
 dustin.preserveWhiteSpace = function ( preserve ){
   if ( preserve ) {
     dust.optimizers.format = function ( ctx, node ){ return node }
@@ -45,35 +62,18 @@ dustin.preserveWhiteSpace = function ( preserve ){
   }
 }
 
-function copy( src, dest ){
-  mkdirp.sync(path.dirname(dest))
-  fs.createReadStream(src)
-    .pipe(fs.createWriteStream(dest))
-  console.log("Copied client libs: '%s'", dest)
-}
-
 /**
  * Copy all dist files from the dust repo to the destination
  * and concat the onLoad function to each them.
  * */
 dustin.copyClient = function ( dest, resolvePath ){
+  var clientScript = clientLibs.replace(/"RESOLVE_PATH"/, '"' + resolvePath + '"')
 
-  var clientLibs = glob.sync(path.join(__dirname, "client/**/*.js")).map(function( src ){
-    return dustin.read(src)
-  }).join(";\n")
-
-  var scripts = [
-      "dust-core.js",
-      "dust-core.min.js",
-      "dust-full.js",
-      "dust-full.min.js"
-    ]
-  clientLibs = clientLibs.replace(/"resolvePath"/, '"' + resolvePath + '"')
-  scripts.forEach(function doCopy( clientScript ){
-    var destPath = path.join(process.cwd(), dest, clientScript)
-    var clientPath = path.join(__dirname, "node_modules/dustjs-linkedin/dist", clientScript)
+  dustLibs.forEach(function doCopy( dustScript ){
+    var destPath = path.join(process.cwd(), dest, dustScript)
+    var clientPath = path.join(__dirname, "node_modules/dustjs-linkedin/dist", dustScript)
     var script = dustin.read(clientPath)
-    script += ";\n" + clientLibs
+    script += ";\n" + clientScript
     mkdirp.sync(path.dirname(destPath))
     fs.writeFileSync(destPath, script, "utf8")
   })
@@ -149,6 +149,9 @@ function Adapter( options ){
   // keep track of the current root template for error reporting
   this.currentDustTemplate = null
 
+  if ( options.helpers ) this.registerHelpers(options.helpers)
+  if ( options.data ) this.data(options.data)
+
   // By default Dust returns a "template not found" error
   // when a named template cannot be located in the cache.
   // Override onLoad to specify a fallback loading mechanism
@@ -159,11 +162,17 @@ function Adapter( options ){
   options.setup && options.setup(this, dust)
 }
 
+/**
+ * load a partial from disk by name
+ * uses the resolve property to construct a path with the current working dir for a dust template.
+ * appends .dust to the name argument.
+ * @param name{String} the name of a dust template relative to `this.resolve` path.
+ * */
 Adapter.prototype.loadPartial = function ( name ){
   var partial = this.partials[name]
   var content
   if ( !this.cache || !partial ) {
-    var src = path.join(process.cwd(), this.resolve, name+".dust")
+    var src = path.join(process.cwd(), this.resolve, name + ".dust")
     content = dustin.read(src)
     if ( this.cache && partial ) {
       this.partials[name] = {
@@ -176,12 +185,15 @@ Adapter.prototype.loadPartial = function ( name ){
   else {
     content = partial && partial.content
   }
-  if( !content ) {
+  if ( !content ) {
     throw new Error("Partial '" + name + "' not found in '" + this.currentDustTemplate + "'")
   }
   return content
 }
 
+/**
+ * @param sources{String|String[]} .js file paths
+ * */
 Adapter.prototype.registerHelpers = function ( sources ){
   var adapter = this
   if ( typeof sources == "string" ) {
@@ -193,16 +205,19 @@ Adapter.prototype.registerHelpers = function ( sources ){
       require(src)(adapter, dustin, dust)
     }
     catch ( e ) {
-      console.error("Couldn't load helper '"+src+"'", e)
+      console.error("Couldn't load helper '" + src + "'", e)
     }
   })
 }
 
 /**
- * @param sources{String[]} .json file paths
+ * @param sources{String|String[]} .json file paths
  * */
 Adapter.prototype.data = function ( sources ){
   var context = this.context
+  if ( typeof sources == "string" ) {
+    sources = glob.sync(sources)
+  }
   sources.forEach(function ( file ){
     try {
       context[dustin.nameOf(file)] = JSON.parse(dustin.read(file))
@@ -260,7 +275,7 @@ Adapter.prototype.compile = function ( src, content, done ){
   }
 }
 
-Adapter.prototype.renderView = function ( src, res, next, content, context ){
+function renderView( src, res, next, content, context ){
   this.render(src, content, context, function ( err, rendered ){
     if ( err ) {
       next(err)
@@ -271,11 +286,20 @@ Adapter.prototype.renderView = function ( src, res, next, content, context ){
   })
 }
 
-Adapter.prototype.addView = function ( app, url, src, context ){
+/**
+ * registers a route to an express app.
+ * If the route matches, it will render `template` relative to `this.resolveSrc`.
+ * .dust is appended automatically.
+ * @param app {Function} an express app
+ * @param url {Function} a route to match
+ * @param template {Function} a template to render
+ * @param [context] {Function} optional context for this template
+ * */
+Adapter.prototype.addView = function ( app, url, template, context ){
   var adapter = this
-  src = path.join(this.resolveSrc, src + ".dust")
+  template = path.join(this.resolveSrc, template + ".dust")
   app.get(url, function ( req, res, next ){
-    fs.readFile(src, "utf8", function ( err, content ){
+    fs.readFile(template, "utf8", function ( err, content ){
       if ( err ) {
         next(err)
         return
@@ -286,11 +310,11 @@ Adapter.prototype.addView = function ( app, url, src, context ){
             next(err)
             return
           }
-          adapter.renderView(src, res, next, content, context)
+          renderView.call(adapter, template, res, next, content, context)
         })
       }
       else {
-        adapter.renderView(src, res, next, content, context)
+        renderView.call(adapter, template, res, next, content, context)
       }
     })
   })
