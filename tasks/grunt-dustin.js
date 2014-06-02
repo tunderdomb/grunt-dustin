@@ -36,20 +36,7 @@ module.exports = function ( grunt ){
       return
     }
 
-    dustin.preserveWhiteSpace(options.preserveWhiteSpace)
-
     var adapter = dustin(options)
-
-    // register data
-    if( options.data ){
-      adapter.data(grunt.file.expand(options.data))
-    }
-
-    // Register helpers and copy client engines
-    if( options.helpers ){
-      adapter.registerHelpers(grunt.file.expand(options.helpers))
-    }
-
 
     var sources = []
       , concats = {}

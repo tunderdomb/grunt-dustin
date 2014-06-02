@@ -31,8 +31,8 @@ var dustLibs = [
 
 // custom client libs
 var clientLibs = (function ( dustHelpersString ){
-  for ( var helper in helpers ) {
-    dustHelpersString += "dust.helpers." + helper + " = " + helpers[helper].toString() + ";\n"
+  for ( var helper in dust.helpers ) {
+    dustHelpersString += "dust.helpers." + helper + " = " + dust.helpers[helper].toString() + ";\n"
   }
   return dustHelpersString + glob.sync(path.join(__dirname, "client/**/*.js")).map(dustin.read).join(";\n")
 }(""))
