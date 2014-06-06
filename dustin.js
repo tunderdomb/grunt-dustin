@@ -112,6 +112,18 @@ function nameOf( src ){
   return path.basename(src, path.extname(src))
 }
 
+function resolveTemplateName( templatePath, resolveDir ){
+  return templatePath
+    .replace(/\\/g, "/")
+    .replace(resolveDir, "")
+    .replace(process.cwd().replace(/\\/g, "/"), "")
+    .replace(".dust", "")
+}
+
+function resolveTemplatePath( resolveDir, template ){
+  return path.join(process.cwd(), resolveDir, template + ".dust")
+}
+
 /**
  * resolve a partial name to a proper path part
  * @example
@@ -139,7 +151,6 @@ function Adapter( options ){
   var adapter = this
 
   this.resolve = options.resolve || ""
-  this.resolveSrc = options.resolveSrc || process.cwd()
   this.cache = !!options.cache
 
   dustin.preserveWhiteSpace(!!options.preserveWhiteSpace)
@@ -173,7 +184,7 @@ Adapter.prototype.loadPartial = function ( name ){
   var partial = this.partials[name]
   var content
   if ( !this.cache || !partial ) {
-    var src = path.join(process.cwd(), this.resolve, name + ".dust")
+    var src = resolveTemplatePath(this.resolve, name)
     content = read(src)
     if ( this.cache && partial ) {
       this.partials[name] = {
@@ -236,13 +247,16 @@ Adapter.prototype.render = function ( src, content, context, done ){
   var adapter = this
 
   context = context
-    ? dustin.merge(adapter.context, context)
+    ? merge(adapter.context, context)
     : adapter.context
 
+  var name = resolveTemplateName(src, this.resolve)
+
   try {
-    var name = path.basename(src, path.extname(src))
     adapter.currentDustTemplate = src
-    dust.loadSource(dust.compile(content, name))
+    if ( content ) {
+      dust.loadSource(dust.compile(content, name))
+    }
     dust.render(name, context, function ( err, out ){
       done(err, out)
       // clear dust cache each time a root template is rendered
@@ -276,17 +290,6 @@ Adapter.prototype.compile = function ( src, content, done ){
   }
 }
 
-function renderView( src, res, next, content, context ){
-  this.render(src, content, context, function ( err, rendered ){
-    if ( err ) {
-      next(err)
-    }
-    else {
-      res.send(rendered)
-    }
-  })
-}
-
 /**
  * registers a route to an express app.
  * If the route matches, it will render `template` relative to `this.resolveSrc`.
@@ -298,25 +301,21 @@ function renderView( src, res, next, content, context ){
  * */
 Adapter.prototype.addView = function ( app, url, template, context ){
   var adapter = this
-  template = path.join(this.resolveSrc, template + ".dust")
-  app.get(url, function ( req, res, next ){
-    fs.readFile(template, "utf8", function ( err, content ){
-      if ( err ) {
-        next(err)
-        return
-      }
-      if ( typeof context == "function" ) {
-        context(function ( err, context ){
-          if ( err ) {
-            next(err)
-            return
-          }
-          renderView.call(adapter, template, res, next, content, context)
-        })
-      }
-      else {
-        renderView.call(adapter, template, res, next, content, context)
-      }
+
+  function render( res, next, context ){
+    adapter.render(template, null, context, function ( err, rendered ){
+      if ( err ) next(err)
+      else res.send(rendered)
     })
+  }
+
+  app.get(url, function ( req, res, next ){
+    if ( typeof context == "function" ) {
+      context(function ( err, context ){
+        if ( err ) next(err)
+        else render(res, next, context)
+      })
+    }
+    else render(res, next)
   })
 }

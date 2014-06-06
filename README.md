@@ -18,8 +18,7 @@ var dustin = require("grunt-dustin")
 var adapter = dustin({
   cache: true,
   preserveWhiteSpace: false,
-  resolve: "view/",
-  resolveSrc: path.join(__dirname, "..", "view/")
+  resolve: "view/"
 })
 
 ```
