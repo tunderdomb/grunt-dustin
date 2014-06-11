@@ -1,6 +1,8 @@
 grunt-dustin
 ============
 
+Better templating with LinkedIn's dust fork.
+
 ## Adapter API
 
 Acquire the singleton:
@@ -28,15 +30,27 @@ will resolve to this template: `test/some/partial.dust`.
 #### helpers
 
 ##### Type: `String`
-##### Example: `"test/data/*.json"`
+##### Example: `"test/helpers/node/*.js"`
 
-Passed directly to `adapter.data()`.
+Register helpers.
+
+Example helper file:
+
+```js
+module.exports = function ( adapter, dustin, dust ){
+  dust.helpers.hello = function ( chunk, context, bodies, params ){
+    return chunk.write("hello ")
+  }
+}
+```
 
 
 #### data
 
 ##### Type: `String`
-##### Example: `"test/helpers/node/*.js"`
+##### Example: `"test/data/*.json"`
+
+Passed directly to `adapter.data()`.
 
 
 #### setup
@@ -73,7 +87,8 @@ Switch between whitespace modes.
 
 #### loadPartial(String)
 
-Load a partial by name.
+Load a partial by name and return it's content.
+It's used internally to load dust templates from the filesystem.
 
 
 #### data(String)
@@ -146,6 +161,12 @@ and render the given template with the given context and respond with it.
 
 This tells the task to render templates.
 
+#### resolve
+
+##### Type: `String`
+
+Passed to the adapter as the resolve option.
+
 #### preserveWhiteSpace
 
 ##### Type: `Boolean`
@@ -164,15 +185,7 @@ Passed to the adapter as the data option.
 ##### Type: `String`
 ##### Example: `"test/helpers/*.js"`
 
-Register helpers for the render context.
-
-Example helper file:
-
-```js
-dust.helpers.hello = function ( chunk, context, bodies, params ){
-  return chunk.write("hello ")
-}
-```
+Register helpers for the render context. Passed to the adapter as the helpers option.
 
 #### cache
 
@@ -188,6 +201,12 @@ Propagates to the adapter cache option.
 ##### Type: `Boolean`
 
 This tells the target to compile templates.
+
+#### resolve
+
+##### Type: `String`
+
+Passed to the adapter as the resolve option.
 
 #### preserveWhiteSpace
 
@@ -225,14 +244,22 @@ This:
 {>"some/partial"/}
 ```
 
-will resolve to template: `js/some/partial.js`.
+will resolve to this template: `js/some/partial.js`.
 
 #### helpers
 
 ##### Type: `String`
-##### Example: `"test/helpers/*.js"`
+##### Example: `"test/helpers/client/*.js"`
 
 If set, the client scripts will include these helpers.
+
+Example helper file:
+
+```js
+dust.helpers.hello = function ( chunk, context, bodies, params ){
+  return chunk.write("hello ")
+}
+```
 
 #### dustinHelpers
 
