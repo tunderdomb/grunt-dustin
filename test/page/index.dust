@@ -1,0 +1,20 @@
+{>"layout/page"/}
+
+{<title}People{/title}
+{<body}
+  <pre>
+    {#people}{.name} ({.kind})
+    {/people}
+  </pre>
+{/body}
+
+{<js}
+  <script type="text/javascript" src="js/dust-core.js"></script>
+  {!<script type="text/javascript" src="template/elements.js"></script>!}
+  <script type="text/javascript">
+    dust.renderElement("elements/message", {name: "Charles"}, function( err, element ){
+      if( err ) console.error(err)
+      else document.body.appendChild(element)
+    })
+  </script>
+{/js}

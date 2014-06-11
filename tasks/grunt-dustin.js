@@ -7,18 +7,23 @@
  */
 
 var async = require("async")
-var path = require("path")
-var dustin = require("../dustin")
+var dustin = require("../lib/dustin")
+var glob = require("glob")
 
 module.exports = function ( grunt ){
 
   grunt.registerMultiTask("dustin", "Render dust templates", function (){
 
     var options = this.options({
-      client: "",
+      copy: "",
+      helpers: "",
+      dustinHelpers: true,
+      dustHelpers: true,
+
       render: false,
       compile: false,
       cache: false,
+
       data: "",
       resolve: "",
       preserveWhiteSpace: true,
@@ -26,8 +31,8 @@ module.exports = function ( grunt ){
     })
 
     // copy browser dustin
-    if ( options.client ) {
-      dustin.copyClient(options.client, options.resolve)
+    if ( options.copy ) {
+      dustin.copyClientLibs(options.copy, options.resolve, options.dustinHelpers, options.dustHelpers, options.helpers)
       return
     }
 

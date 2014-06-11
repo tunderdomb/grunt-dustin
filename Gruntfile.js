@@ -4,54 +4,59 @@ module.exports = function ( grunt ){
     dustin: {
       // set global values for path resolution
       options: {
-        resolve: "test/partials/",
-        setup: function( adapter, dust ){}
+        // this prefixes partial lookup to shorten referencing
+        resolve: "test/",
+        setup: function( adapter, dust ){
+          // whatever you want to do with dust before anything happens,
+          // do it here
+        }
       },
       copyClientLibs: {
         options: {
           // if the client option is present, every other is ignored
-          // copy client libs to this dir
-          client: "test/lib/",
-          // set path resolution to this path
+          // and client side libraries are copied to this dir
+          copy: "test/out/js/",
+          // set path resolution to client template loading
           // templates will attempt to load from this dir
-          // example: {>"nested/partial/go"/}
-          // will load from compiled/partials/nested/partial/go.js
-
-          // NOTE: for correct resolution, the compiled templates must use the same resolve roots,
-          // so take care setting the resolve and partials options accordingly
-          // In a nutshell, the resolve option just lets you define a resolution root
-          // so you can refer to templates with a relative path.
-          resolve: "compiled/partials/"
+          // example: {>"elements/message"/}
+          // will load from template/elements/message.js
+          resolve: "template/",
+          helpers: "test/helpers/client/*.js",
+          dustinHelpers: true,
+          dustHelpers: true
         }
       },
       render: {
         options: {
           // this target renders html files
           render: true,
-          // Dust removes white space by default. Don't do that.
+          // Dust removes white space by default. Don't do that now.
           preserveWhiteSpace: true,
           // create a global context from these json files
           // file names will be global properties
           data: "test/data/*.json",
           // execute these js files and let them register helpers
-          helpers: "test/helpers/*.js"
+          helpers: "test/helpers/node/*.js",
+          // this keeps the cache clear
+          cache: false
         },
         expand: true,
-        cwd: "test/templates",
-        src: ["*.dust"],
-        dest: "test/rendered/"
+        cwd: "test/page",
+        src: "*.dust",
+        dest: "test/out/",
+        ext: ".html"
       },
       compile: {
         options: {
-          // this task compiles js files
+          // this target compiles js files
           compile: true,
           // we don't care about white space in compiled templates
           preserveWhiteSpace: false
         },
         expand: true,
         cwd: "test/",
-        src: ["**/*.dust"],
-        dest: "test/compiled/",
+        src: "elements/*.dust",
+        dest: "test/out/template/",
         ext: ".js"
       },
       compileAndConcat: {
@@ -62,8 +67,7 @@ module.exports = function ( grunt ){
           concat: true
         },
         files: {
-          "test/compiled/partials.dust.js": "test/partials/**/*.dust",
-          "test/compiled/templates.dust.js": "test/templates/**/*.dust"
+          "test/out/template/elements.js": "test/elements/*.dust"
         }
       }
     },

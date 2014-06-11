@@ -1,8 +1,8 @@
 {
   "name": "grunt-dustin",
-  "version": "0.13.9",
+  "version": "0.2.0",
   "description": "Grunt task for LinkedIn's Dust fork",
-  "main": "dustin.js",
+  "main": "lib/dustin.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

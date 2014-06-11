@@ -1,0 +1,1 @@
+(function(){dust.register("elements/button",body_0);function body_0(chk,ctx){return chk.write("<button>").reference(ctx.get(["title"], false),ctx,"h").write("</button>");}return body_0;})();

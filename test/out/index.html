@@ -1,0 +1,31 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>People</title>
+</head>
+<body>
+
+  <pre>
+    Pepper Potts (human)
+    Spider-Man (hero)
+    Tony Stark (hero)
+    Hulk (Hulk)
+    
+  </pre>
+
+
+  <script type="text/javascript" src="js/dust-core.js"></script>
+  
+  <script type="text/javascript">
+    dust.renderElement("elements/message", {name: "Charles"}, function( err, element ){
+      if( err ) console.error(err)
+      else document.body.appendChild(element)
+    })
+  </script>
+
+</body>
+</html>
+
+
+
+
