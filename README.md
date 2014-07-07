@@ -141,13 +141,6 @@ The template will be registered according to the src argument, resolved to the
 callback arguments: (error{Error}, renderedTemplate{String})
 
 
-#### addView(app{Express App}, url{String}, template{String}, context{Object} )
-
-This is a convenient method for express users.
-It registers a `get()` on the app for the given url.
-Inside the callback, it attempts to load
-and render the given template with the given context and respond with it.
-
 --------
 
 
