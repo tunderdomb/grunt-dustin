@@ -4654,6 +4654,32 @@ dust.helpers = helpers;
 })(typeof exports !== 'undefined' ? module.exports = require('dustjs-linkedin') : dust);
 
 /* Dustin Helpers */
+dust.helpers["for"] = function ( chunk, context, bodies, params ){
+  params = params || {}
+  var obj = params["$in"] || context.current()
+    , keyVar = params["$key"] || "$key"
+    , valueVar = params["$value"] || "$value"
+    , body = bodies.block
+    , key
+    , value
+    , contextObj
+
+  if ( obj && body ) {
+    for ( key in obj ) {
+      if ( obj.hasOwnProperty(key) ) {
+        value = obj[key]
+        contextObj = {}
+        contextObj[keyVar] = key
+        contextObj[valueVar] = value
+        contextObj.type = typeof value
+        chunk = body(chunk, context.push(contextObj))
+      }
+    }
+  }
+
+  return chunk
+}
+;
 dust.helpers.macro = function ( chunk, context, bodies, params ){
   var body = bodies.block
     , partial = params.partial
@@ -4671,7 +4697,15 @@ dust.helpers.macro = function ( chunk, context, bodies, params ){
     return template(chunk, context)
   }
   return body ? body(chunk, context) : chunk
+};
+dust.helpers["with"] = function ( chunk, context, bodies, params ){
+  var body = bodies.block
+  if ( body ) {
+    chunk = body(chunk, context.push(context.current()))
+  }
+  return chunk
 }
+
 /* User Helpers */
 dust.helpers.hello = function ( chunk, context, bodies, params ){
   var body = bodies.block

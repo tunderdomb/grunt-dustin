@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "async": "0.2.10",
-    "dustin": "1.1.2"
+    "dustin": "^1.1.3"
   },
   "devDependencies": {
     "grunt": "~0.4.4",
