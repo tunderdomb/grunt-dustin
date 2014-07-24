@@ -1,6 +1,6 @@
 {
   "name": "grunt-dustin",
-  "version": "0.2.3",
+  "version": "1.0.0",
   "description": "Grunt task for LinkedIn's Dust fork",
   "main": "lib/dustin.js",
   "scripts": {
@@ -20,11 +20,8 @@
     "url": "https://github.com/tunderdomb/grunt-dustin/issues"
   },
   "dependencies": {
-    "dustjs-linkedin": "2.3.4",
-    "dustjs-helpers": "1.2.0",
     "async": "0.2.10",
-    "mkdirp": "0.3.5",
-    "glob": "4.0.0"
+    "dustin": "1.1.2"
   },
   "devDependencies": {
     "grunt": "~0.4.4",

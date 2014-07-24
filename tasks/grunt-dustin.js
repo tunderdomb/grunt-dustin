@@ -1,14 +1,5 @@
-/*
- * grunt-dustin
- * https://github.com/tunderdomb/grunt-dustin
- *
- * Copyright (c) 2014 tunderdomb
- * Licensed under the MIT license.
- */
-
 var async = require("async")
-var dustin = require("../lib/dustin")
-var glob = require("glob")
+var dustin = require("dustin")
 
 module.exports = function ( grunt ){
 

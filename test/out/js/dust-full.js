@@ -4133,10 +4133,11 @@
   
   return compiler;
 
-}));
-
-;
+}));;
 /* Dust Helpers */
+/*! dustjs-helpers - v1.2.0
+* https://github.com/linkedin/dustjs-helpers
+* Copyright (c) 2014 Aleksander Williams; Released under the MIT License */
 (function(dust){
 
 // Note: all error conditions are logged to console and failed silently
